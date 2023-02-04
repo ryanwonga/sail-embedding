@@ -121,8 +121,8 @@ def get_syntax_tree_from_sail(sail):
             continue
         elif is_end_function(curr_char, states):
             if len(curr_string.strip()) > 0:
-                objects, object_map = process_new_object(curr_string.strip(), ObjectType.TEXT, objects,
-                                                         objects_map, newline_count)
+                objects, object_map = process_new_object(curr_string.strip(), get_value_type(curr_string.strip()),
+                                                         objects, objects_map, newline_count)
                 objects = objects[:-1]  # Text objectTypes cannot own values
             objects = objects[:-2]  # [...,function,param,function] -> [...,function] or [function] -> []
             curr_string = ""
@@ -135,15 +135,15 @@ def get_syntax_tree_from_sail(sail):
             continue
         elif is_end_variant(curr_char, states):
             if len(curr_string.strip()) > 0:
-                objects, object_map = process_new_object(curr_string.strip(), ObjectType.TEXT, objects,
-                                                         objects_map, newline_count)
+                objects, object_map = process_new_object(curr_string.strip(), get_value_type(curr_string.strip()),
+                                                         objects, objects_map, newline_count)
                 objects = objects[:-1]  # Text objectTypes cannot own values
             objects = objects[:-2]  # [...,function,param,function] -> [...,function] or [function] -> []
             curr_string = ""
             j += 1
             continue
         elif if_keyless_value(curr_char, objects[-1].object_type == ObjectType.FUNCTION, states):
-            objects, object_map = process_new_object(curr_string.strip(), ObjectType.TEXT, objects,
+            objects, object_map = process_new_object(curr_string.strip(), get_value_type(curr_string.strip()), objects,
                                                      objects_map, newline_count)
             objects = objects[:-2]  # [...,function,param,value] -> [...,function]
             curr_string = ""
@@ -159,8 +159,8 @@ def get_syntax_tree_from_sail(sail):
             continue
         elif is_end_keyed_parameter(curr_char, objects[-1].object_type == ObjectType.PARAMETER, states):
             if len(curr_string.strip()) > 0:
-                objects, object_map = process_new_object(curr_string.strip(), ObjectType.TEXT, objects,
-                                                         objects_map, newline_count)
+                objects, object_map = process_new_object(curr_string.strip(), get_value_type(curr_string.strip()),
+                                                         objects, objects_map, newline_count)
                 objects = objects[:-1]  # Text objectTypes cannot own values
             curr_string = ""
             j += 1
@@ -178,6 +178,16 @@ def get_sail_expression(xml_path: Path):
     with open(xml_path, "r") as infile:
         xml = infile.read()
     return re.search(r"<definition>([\S\s.]*?)</definition>", xml).group(1)
+
+
+def get_value_type(string: str):
+    if "ri!" in string:
+        return ObjectType.RI
+    elif "local!" in string:
+        return ObjectType.LOCAL
+    elif "fv!" in string:
+        return ObjectType.FV
+    return ObjectType.TEXT
 
 
 def is_newline(c: str):
