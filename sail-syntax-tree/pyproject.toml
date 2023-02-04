@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "sail-syntax-tree"
+version = "0.1.0"
+description = ""
+authors = ["Ryan Wong <ryan.wong@appian.com>"]
+readme = "README.md"
+packages = [{include = "sail_syntax_tree"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

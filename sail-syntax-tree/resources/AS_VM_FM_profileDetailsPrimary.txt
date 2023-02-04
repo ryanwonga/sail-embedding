@@ -1,0 +1,274 @@
+a!localVariables(
+  local!vendorBusinessTypes: rule!AS_VM_QE_getVendorBusinessTypeMapping(
+    returnType: cons!AS_CO_ENUM_QE_RETURN_TYPE_OBJECT_ARRAY,
+    vendorIds: ri!vendorDetails.vendorId,
+    triggerRefresh: ri!triggerRefresh
+  ),
+  local!vendorBusinessTypeNames: rule!AS_CO_UT_indexPath(
+    cdt: local!vendorBusinessTypes,
+    field: "typeCode.description",
+    indexDefault: {}
+  ),
+  local!showLess: true,
+  local!showMoreLessMessage: length(local!vendorBusinessTypeNames) > cons!AS_VM_ENUM_SHOW_MORE_LESS_LIMIT,
+  {
+    a!richTextDisplayField(
+      labelPosition: "COLLAPSED",
+      value: {
+        a!richTextItem(
+          text: {
+            upper(
+              rule!AS_GAM_CO_I18N_UT_displayLabel(
+                bundle: ri!bundle,
+                bundleKey: "lbl_PrimaryVendorDetails"
+              )
+            )
+          },
+          color: "ACCENT",
+          style: { "STRONG" }
+        )
+      },
+      accessibilityText: rule!AS_GAM_CO_I18N_UT_displayLabel(
+        bundle: ri!bundle,
+        bundleKey: "acs_RichText"
+      ),
+    ),
+    a!cardLayout(
+      contents: {
+        a!richTextDisplayField(
+          labelPosition: "COLLAPSED",
+          value: a!richTextItem(
+            text: upper(
+              rule!AS_GAM_CO_I18N_UT_displayLabel(
+                bundle: ri!bundle,
+                bundleKey: "lbl_DoingBusinessAs"
+              )
+            ),
+            style: "STRONG"
+          )
+        ),
+        if(
+          a!isNullOrEmpty(ri!vendorDetails.businessName),
+          {
+            a!stampField(
+              labelPosition: "COLLAPSED",
+              backgroundColor: "SECONDARY",
+              icon: "box-open",
+              align: "CENTER",
+              marginAbove: "EVEN_MORE",
+              
+            ),
+            a!richTextDisplayField(
+              labelPosition: "COLLAPSED",
+              align: "CENTER",
+              marginAbove: "STANDARD",
+              marginBelow: "EVEN_MORE",
+              value: rule!AS_GAM_CO_I18N_UT_displayLabel(
+                bundle: ri!bundle,
+                bundleKey: "txt_NoBussinessName"
+              )
+            )
+          },
+          a!columnsLayout(
+            columns: {
+              /*ICON CARD*/
+              a!columnLayout(
+                contents: {
+                  a!cardLayout(
+                    contents: {
+                      a!richTextDisplayField(
+                        labelPosition: "COLLAPSED",
+                        value: {
+                          a!richTextIcon(
+                            icon: "landmark",
+                            color: "STANDARD",
+                            size: "LARGE"
+                          )
+                        },
+                        align: "CENTER"
+                      )
+                    },
+                    height: "AUTO",
+                    style: "#DDDDDD",
+                    shape: "SEMI_ROUNDED",
+                    padding: "LESS",
+                    marginAbove: "NONE",
+                    marginBelow: "NONE",
+                    showBorder: false
+                  )
+                },
+                width: "EXTRA_NARROW"
+              ),
+              a!columnLayout(
+                contents: {
+                  a!cardLayout(
+                    contents: {
+                      a!richTextDisplayField(
+                        labelPosition: "COLLAPSED",
+                        value: {
+                          a!richTextItem(
+                            text: ri!vendorDetails.businessName,
+                            size: "MEDIUM"/*style: "STRONG"*/
+                            
+                          )
+                        }
+                      )
+                    },
+                    height: "AUTO",
+                    style: "NONE",
+                    padding: "EVEN_LESS",
+                    marginBelow: "NONE",
+                    showBorder: false
+                  )
+                }
+              )
+            },
+            alignVertical: "MIDDLE",
+            spacing: "DENSE"
+          )
+        )
+      },
+      height: "AUTO",
+      style: "NONE",
+      padding: "STANDARD",
+      marginBelow: "STANDARD",
+      shape: "SEMI_ROUNDED",
+      showBorder: false,
+      showShadow: true
+    ),
+    a!cardLayout(
+      contents: {
+        /*CARD TITLE*/
+        a!richTextDisplayField(
+          labelPosition: "COLLAPSED",
+          value: a!richTextItem(
+            text: upper(
+              rule!AS_GAM_CO_I18N_UT_displayLabel(
+                bundle: ri!bundle,
+                bundleKey: "lbl_BusinessType"
+              )
+            ),
+            style: "STRONG"
+          )
+        ),
+        if(
+          rule!AS_CO_UT_isBlank(local!vendorBusinessTypeNames),
+          {
+            a!stampField(
+              labelPosition: "COLLAPSED",
+              backgroundColor: "SECONDARY",
+              icon: "box-open",
+              align: "CENTER",
+              marginAbove: "EVEN_MORE"
+            ),
+            a!richTextDisplayField(
+              labelPosition: "COLLAPSED",
+              align: "CENTER",
+              marginAbove: "STANDARD",
+              marginBelow: "EVEN_MORE",
+              value: rule!AS_GAM_CO_I18N_UT_displayLabel(
+                bundle: ri!bundle,
+                bundleKey: "txt_NoBussinessType"
+              )
+            )
+          },
+          a!columnsLayout(
+            columns: {
+              /*ICON CARD*/
+              a!columnLayout(
+                contents: {
+                  a!cardLayout(
+                    contents: {
+                      a!richTextDisplayField(
+                        labelPosition: "COLLAPSED",
+                        value: {
+                          a!richTextIcon(
+                            icon: "building-o",
+                            color: "STANDARD",
+                            size: "LARGE"
+                          )
+                        },
+                        align: "CENTER"
+                      )
+                    },
+                    height: "AUTO",
+                    style: "#DDDDDD",
+                    shape: "SEMI_ROUNDED",
+                    padding: "LESS",
+                    marginAbove: "NONE",
+                    marginBelow: "NONE",
+                    showBorder: false
+                  )
+                },
+                width: "EXTRA_NARROW"
+              ),
+              a!columnLayout(
+                contents: {
+                  a!cardLayout(
+                    contents: {
+                      a!forEach(
+                        items: if(
+                          and(
+                            local!showLess = true,
+                            local!showMoreLessMessage = true
+                          ),
+                          rdrop(
+                            local!vendorBusinessTypeNames,
+                            length(local!vendorBusinessTypeNames) - cons!AS_VM_ENUM_SHOW_MORE_LESS_LIMIT
+                          ),
+                          local!vendorBusinessTypeNames
+                        ),
+                        expression: a!richTextDisplayField(
+                          labelPosition: "COLLAPSED",
+                          value: a!richTextItem(text: fv!item, size: "MEDIUM")
+                        ),
+                        
+                      ),
+                      a!richTextDisplayField(
+                        value: a!richTextItem(
+                          text: if(
+                            local!showLess = true,
+                            rule!AS_GAM_CO_I18N_UT_displayLabel(
+                              bundle: ri!bundle,
+                              bundleKey: "txt_ViewAll"
+                            ),
+                            rule!AS_GAM_CO_I18N_UT_displayLabel(
+                              bundle: ri!bundle,
+                              bundleKey: "txt_ViewLess"
+                            )
+                          ),
+                          link: a!dynamicLink(
+                            saveInto: a!save(local!showLess, not(local!showLess))
+                          ),
+                          linkStyle: "STANDALONE",
+                          color: "ACCENT",
+                          style: "STRONG"
+                        ),
+                        showWhen: local!showMoreLessMessage = true,
+                        align: "CENTER"
+                      )
+                    },
+                    height: "AUTO",
+                    style: "NONE",
+                    padding: "EVEN_LESS",
+                    marginBelow: "NONE",
+                    showBorder: false
+                  )
+                }
+              )
+            },
+            alignVertical: "TOP",
+            spacing: "DENSE"
+          )
+        )
+      },
+      height: "AUTO",
+      style: "NONE",
+      padding: "STANDARD",
+      marginBelow: "STANDARD",
+      shape: "SEMI_ROUNDED",
+      showBorder: false,
+      showShadow: true
+    )
+  }
+)

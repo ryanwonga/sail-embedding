@@ -1,0 +1,748 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000e992-d95a-8000-9bb0-011c48011c48_140472</versionUuid>
+    <rule>
+        <name>PHQ_topLevel</name>
+        <uuid>_a-0000e974-6eca-8000-9ba5-011c48011c48_10634</uuid>
+        <description></description>
+        <parentUuid>4c657c60-7c8b-4ea8-baa1-63906a69a9c4</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>a!localVariables(
+  local!triggerReset,
+  local!triggerResetProcessDashboardFilters,
+  local!triggerResetAttributeDashboardFilters,
+  local!triggerResetFiltersSection,
+  local!localeMap: #"_a-0000e974-6eca-8000-9ba5-011c48011c48_9922"(locale: #"_a-0000e974-6eca-8000-9ba5-011c48011c48_10640"),
+  local!breadcrumbs: {
+    'type!{urn:com:appian:types:PHQ}PHQ_HELPER_breadcrumb'(
+      text: #"_a-0000e974-6eca-8000-9ba5-011c48011c48_10581"(
+        localeMap: local!localeMap,
+        key: "lbl_dataExploration"
+      ),
+      selectedLog: null,
+      selectedAttributeName: null,
+      selectedElementName: null
+    )
+  },
+  local!logs: #"_a-0000e989-9e26-8000-9bad-011c48011c48_32975"(),
+  local!latestBreadcrumb: local!breadcrumbs[length(local!breadcrumbs)],
+  local!selectedLog: local!latestBreadcrumb.selectedLog,
+  local!selectedAttributeName: local!latestBreadcrumb.selectedAttributeName,
+  local!selectedElementName: local!latestBreadcrumb.selectedElementName,
+  local!pageIndex: #"_a-0000e984-24eb-8000-9baa-011c48011c48_16212"(
+    selectedLog: local!selectedLog,
+    selectedAttributeName: local!selectedAttributeName,
+    selectedElementName: local!selectedElementName
+  ),
+  local!firstStartDatetimeMap: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13568"(
+    logId: index(local!selectedLog, "id", null)
+  ),
+  local!lastEndDatetimeMap: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13618"(
+    logId: index(local!selectedLog, "id", null)
+  ),
+  local!firstStartDatetime: local!firstStartDatetimeMap["datetime"],
+  local!lastEndDatetime: local!lastEndDatetimeMap["datetime"],
+  local!defaultFilterTimeDurationOptions: 'type!{urn:com:appian:types:PHQ}PHQ_HELPER_timeDuration'(
+    min: null,
+    max: null,
+    id: #"_a-0000e989-9e26-8000-9bad-011c48011c48_88853",
+    displayLabel: ""
+  ),
+  local!defaultFilterTimePeriodOption: #"_a-0000e989-9e26-8000-9bad-011c48011c48_87202"(
+    localeMap: local!localeMap,
+    firstStartDatetime: local!firstStartDatetime
+  )[wherecontains(
+    #"_a-0000e989-9e26-8000-9bad-011c48011c48_87156", #"_a-0000e989-9e26-8000-9bad-011c48011c48_87202"(
+      localeMap: local!localeMap, firstStartDatetime: local!firstStartDatetime
+    ).id
+  )][1],
+  /*Default to Average*/
+  local!filterCalculation: a!refreshVariable(
+    value: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13639"(localeMap: local!localeMap)[wherecontains(
+      #"_a-0000e989-9e26-8000-9bad-011c48011c48_44013", #"_a-0000e984-24eb-8000-9baa-011c48011c48_13639"(localeMap: local!localeMap).id
+    )][1],
+    refreshOnVarChange: local!triggerReset
+  ),
+  local!filterTimePeriodOption: a!refreshVariable(
+    value: local!defaultFilterTimePeriodOption,
+    refreshOnVarChange: {
+      local!triggerReset,
+      local!triggerResetFiltersSection
+    }
+  ),
+  local!filterTimeDurationOption: a!refreshVariable(
+    value: local!defaultFilterTimeDurationOptions,
+    refreshOnVarChange: {
+      local!triggerReset,
+      local!triggerResetFiltersSection
+    }
+  ),
+  local!filterStartDatetime: a!refreshVariable(
+    value: local!firstStartDatetime,
+    refreshOnVarChange: {
+      local!triggerReset,
+      local!triggerResetFiltersSection
+    }
+  ),
+  local!filterEndDatetime: a!refreshVariable(
+    value: local!lastEndDatetime,
+    refreshOnVarChange: {
+      local!triggerReset,
+      local!triggerResetFiltersSection
+    }
+  ),
+
+  /* 
+  Attempt to default time binning to Month
+  If the days between local!filterEndDatetime and local!filterStartDate
+  is less than the default time binning, try to choose the time binning
+  that is just smaller than the difference in days.
+  If difference in days is less than the smallest time binning, then
+  use the smallest time binning.
+  */
+  local!filterTimeBin: a!refreshVariable(
+    value: a!localVariables(
+      local!enumTimeBinnings: #"_a-0000e984-24eb-8000-9baa-011c48011c48_14146"(localeMap: local!localeMap),
+      local!smallestTimeBinning: local!enumTimeBinnings[wherecontains(
+        min(local!enumTimeBinnings.numberOfDays), local!enumTimeBinnings.numberOfDays
+      )][1],
+      local!defaultTimeBinning: local!enumTimeBinnings[wherecontains(
+        #"_a-0000e989-9e26-8000-9bad-011c48011c48_43969", local!enumTimeBinnings.id
+      )][1],
+      local!differenceInDays: tointeger(
+        tointervalds(local!filterEndDatetime) - tointervalds(local!filterStartDatetime)
+      ),
+      if(
+        local!differenceInDays &gt; local!defaultTimeBinning.numberOfDays,
+        local!defaultTimeBinning,
+        if(
+          local!differenceInDays &lt;= local!smallestTimeBinning.numberOfDays,
+          local!smallestTimeBinning,
+          #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_76367"(
+            array: #"SYSTEM_SYSRULES_forEach"(
+              items: local!enumTimeBinnings,
+              expression: if(
+                fv!item.numberOfDays &lt; local!differenceInDays,
+                fv!item,
+                null
+              )
+            )
+          )[1]
+        )
+      )
+    ),
+    refreshOnVarChange: local!triggerReset
+  ),
+  local!filterMeasure: a!refreshVariable(
+    value: #"_a-0000e989-9e26-8000-9bad-011c48011c48_105569"(localeMap: local!localeMap)[wherecontains(
+      #"_a-0000e989-9e26-8000-9bad-011c48011c48_105577", #"_a-0000e989-9e26-8000-9bad-011c48011c48_105569"(localeMap: local!localeMap).id
+    )][1],
+    refreshOnVarChange: {
+      local!triggerReset
+    }
+  ),
+  local!filterActivityNames,
+  local!minDurationValue: if(
+    and(
+      a!isNotNullOrEmpty(local!filterTimeDurationOption),
+      a!isNotNullOrEmpty(local!filterTimeDurationOption.min)
+    ),
+    #"_a-0000e989-9e26-8000-9bad-011c48011c48_104935"(
+      value: local!filterTimeDurationOption.min,
+      durationId: local!filterTimeDurationOption.id
+    ),
+    null
+  ),
+  local!maxDurationValue: if(
+    and(
+      a!isNotNullOrEmpty(local!filterTimeDurationOption),
+      a!isNotNullOrEmpty(local!filterTimeDurationOption.max)
+    ),
+    #"_a-0000e989-9e26-8000-9bad-011c48011c48_104935"(
+      value: local!filterTimeDurationOption.max,
+      durationId: local!filterTimeDurationOption.id
+    ),
+    null
+  ),
+  /* If the activities are not selected, then use case data */
+  local!isMeasureReady: a!match(
+    value: local!filterMeasure.id,
+    equals: #"_a-0000e989-9e26-8000-9bad-011c48011c48_105577",
+    then: true,
+    equals: #"_a-0000e989-9e26-8000-9bad-011c48011c48_105584",
+    then: length(local!filterActivityNames) = 1,
+    equals: #"_a-0000e989-9e26-8000-9bad-011c48011c48_105591",
+    then: length(local!filterActivityNames) = 2,
+    default: false
+  ),
+  local!readyMeasure: if(
+    and(
+      local!isMeasureReady,
+      local!filterMeasure.id &lt;&gt; #"_a-0000e989-9e26-8000-9bad-011c48011c48_105577"
+    ),
+    if(
+      local!filterMeasure.id = #"_a-0000e989-9e26-8000-9bad-011c48011c48_105584",
+      #"urn:appian:function:v1:a:update"(
+        local!filterMeasure,
+        "activity",
+        local!filterActivityNames[1]
+      ),
+      reduce(
+        #"urn:appian:function:v1:a:update",
+        local!filterMeasure,
+        merge(
+          {
+            "preActivity",
+            "succActivity"
+          },
+          local!filterActivityNames
+        )
+      )
+    ),
+    #"_a-0000e989-9e26-8000-9bad-011c48011c48_105569"(localeMap: local!localeMap)[wherecontains(
+      #"_a-0000e989-9e26-8000-9bad-011c48011c48_105577", #"_a-0000e989-9e26-8000-9bad-011c48011c48_105569"(localeMap: local!localeMap).id
+    )][1]
+  ),
+  local!timeRangeFilter: if(
+    or(
+      a!isNullOrEmpty(local!filterStartDatetime),
+      a!isNullOrEmpty(local!filterEndDatetime)
+    ),
+    {},
+    'type!{urn:com:appian:types:PHQ}PHQ_HELPER_aggregateDataTimeRangeFilter'(
+      type: local!readyMeasure.timeRange.type,
+      from: local!filterStartDatetime,
+      to: local!filterEndDatetime
+    )
+  ),
+  local!durationFilter: if(
+    or(
+      a!isNullOrEmpty(local!minDurationValue),
+      a!isNullOrEmpty(local!maxDurationValue)
+    ),
+    {},
+    #"urn:appian:function:v1:a:update"(
+      'type!{urn:com:appian:types:PHQ}PHQ_HELPER_aggregateDataDurationFilter'(),
+      local!filterMeasure.helperCdtFieldName,
+      if(
+        local!isMeasureReady,
+        a!match(
+          value: local!filterMeasure.id,
+          equals: #"_a-0000e989-9e26-8000-9bad-011c48011c48_105577",
+          then: 'type!{urn:com:appian:types:PHQ}PHQ_HELPER_aggregateDataDurationFilter_case'(
+            type: "traceDurationFilter",
+            minTraceDuration: local!minDurationValue,
+            maxTraceDuration: local!maxDurationValue
+          ),
+          equals: #"_a-0000e989-9e26-8000-9bad-011c48011c48_105584",
+          then: 'type!{urn:com:appian:types:PHQ}PHQ_HELPER_aggregateDataDurationFilter_activity'(
+            type: "activityDurationFilter",
+            activityName: index(local!filterActivityNames, 1, ""),
+            minTraceDuration: local!minDurationValue,
+            maxTraceDuration: local!maxDurationValue
+          ),
+          equals: #"_a-0000e989-9e26-8000-9bad-011c48011c48_105591",
+          then: 'type!{urn:com:appian:types:PHQ}PHQ_HELPER_aggregateDataDurationFilter_betweenActivities'(
+            type: "followerFilter",
+            pre: index(local!filterActivityNames, 1, ""),
+            succ: index(local!filterActivityNames, 2, ""),
+            direct: true,
+            min: local!minDurationValue,
+            max: local!maxDurationValue
+          ),
+          default: {}
+        ),
+        'type!{urn:com:appian:types:PHQ}PHQ_HELPER_aggregateDataDurationFilter_case'(
+          type: "traceDurationFilter",
+          minTraceDuration: local!minDurationValue,
+          maxTraceDuration: local!maxDurationValue
+        )
+      )
+    )
+  ),
+  /* local!...Original will denote all local variables that store data with default filters */
+  local!overallDataOriginal: if(
+    a!isNotNullOrEmpty(local!selectedLog),
+    #"_a-0000e984-24eb-8000-9baa-011c48011c48_14345"(
+      logId: index(local!selectedLog, "id", null),
+      filterMeasure: local!readyMeasure,
+      aggregationFunction: index(
+        local!filterCalculation,
+        "aggregationFunction",
+        null
+      ),
+      timeRangeFilter: local!timeRangeFilter
+    ),
+    null
+  ),
+  local!overallCycleTimeOriginal: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+    nullableValue: index(
+      local!overallDataOriginal,
+      "cycleTime",
+      null
+    ),
+    replacementValue: 0
+  ),
+  local!overallCaseCountOriginal: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+    nullableValue: index(
+      local!overallDataOriginal,
+      "caseCount",
+      null
+    ),
+    replacementValue: 0
+  ),
+  local!attributeNamesOriginal: if(
+    a!isNotNullOrEmpty(local!selectedLog),
+    #"_a-0000e984-24eb-8000-9baa-011c48011c48_14213"(
+      logId: index(local!selectedLog, "id", null)
+    ),
+    {}
+  ),
+  local!attributeDataOriginal: if(
+    a!isNotNullOrEmpty(local!selectedLog),
+    #"_a-0000e984-24eb-8000-9baa-011c48011c48_14232"(
+      logId: index(local!selectedLog, "id", null),
+      aggregationFunction: index(
+        local!filterCalculation,
+        "aggregationFunction",
+        null
+      ),
+      startDatetime: local!firstStartDatetime,
+      endDatetime: local!lastEndDatetime,
+      attributes: local!attributeNamesOriginal,
+      overallCaseCount: local!overallCaseCountOriginal,
+      overallCycleTime: local!overallCycleTimeOriginal,
+      localeMap: local!localeMap,
+      timeRangeFilter: local!timeRangeFilter,
+      filterMeasure: local!readyMeasure
+    ),
+    null
+  ),
+  local!activityNamesOriginal: if(
+    a!isNotNullOrEmpty(local!selectedLog),
+    #"_a-0000e989-9e26-8000-9bad-011c48011c48_105197"(
+      logId: index(local!selectedLog, "id", null)
+    ),
+    {}
+  ),
+  local!filterAttributeMapDefaultValue: if(
+    a!isNotNullOrEmpty(local!selectedLog),
+    reduce(
+      #"urn:appian:function:v1:a:update",
+      a!map(),
+      merge(
+        local!attributeNamesOriginal,
+        repeat(
+          length(local!attributeNamesOriginal),
+          null
+        )
+      )
+    ),
+    null
+  ),
+  local!selectedNames: a!refreshVariable(
+    value: touniformstring({}),
+    refreshOnVarChange: { local!triggerResetFiltersSection }
+  ),
+  local!filterAttributeMap: a!refreshVariable(
+    value: local!filterAttributeMapDefaultValue,
+    refreshOnVarChange: {
+      local!triggerReset,
+      local!triggerResetFiltersSection
+    }
+  ),
+  local!allBreadcrumbsExceptCurrent: index(
+    local!breadcrumbs,
+    enumerate(length(local!breadcrumbs)-1)+1
+  ),
+  local!filterAttributeMapWithBreadcrumbs: reduce(
+    #"urn:appian:function:v1:a:update",
+    a!map(),
+    merge(
+      a!keys(local!filterAttributeMap),
+      #"SYSTEM_SYSRULES_forEach"(
+        items: a!keys(local!filterAttributeMap),
+        expression: a!localVariables(
+          local!mapValues: local!filterAttributeMap[fv!item],
+          local!breadcrumbValues: local!allBreadcrumbsExceptCurrent[
+            wherecontains(
+              fv!item,
+              local!allBreadcrumbsExceptCurrent.selectedAttributeName
+            )
+          ].selectedElementName,
+          #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_76367"(
+            array: union(local!mapValues, local!breadcrumbValues)
+          )
+        )
+      )
+    )
+  ),
+  local!filterAttributeNames: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_76367"(
+    array: #"SYSTEM_SYSRULES_forEach"(
+      items: a!keys(local!filterAttributeMapWithBreadcrumbs),
+      expression: if(
+        a!isNotNullOrEmpty(local!filterAttributeMapWithBreadcrumbs[fv!item]),
+        fv!item,
+        ""
+      )
+    )
+  ),
+  local!activityDataWithoutFilter: a!refreshVariable(
+    value: #"_a-0000e992-d95a-8000-9bb0-011c48011c48_137034"(
+      logId: index(local!selectedLog, "id", null),
+      filterMeasure: local!filterMeasure,
+      durationFilter: local!durationFilter,
+      timeRangeFilter: local!timeRangeFilter,
+      attributeFilter: local!filterAttributeMapWithBreadcrumbs
+    ),
+    refreshOnVarChange: {
+      local!triggerReset,
+      local!triggerResetFiltersSection
+    }
+  ),
+
+  local!activityDataWithFilter: a!refreshVariable(
+    value: if(
+      and(
+        a!isNotNullOrEmpty(local!selectedAttributeName),
+        a!isNotNullOrEmpty(local!selectedElementName)
+      ),
+      #"_a-0000e992-d95a-8000-9bb0-011c48011c48_137034"(
+        logId: index(local!selectedLog, "id", null),
+        filterMeasure: local!filterMeasure,
+        durationFilter: local!durationFilter,
+        timeRangeFilter: local!timeRangeFilter,
+        attributeFilter: #"urn:appian:function:v1:a:update"(
+          local!filterAttributeMapWithBreadcrumbs,
+          local!selectedAttributeName,
+          append(
+            local!filterAttributeMapWithBreadcrumbs[local!selectedAttributeName],
+            local!selectedElementName
+          )
+        )
+      ),
+      {}
+    ),
+    refreshOnVarChange: {
+      local!triggerReset,
+      local!triggerResetFiltersSection
+    }
+  ),
+  
+  local!useOriginal: a!refreshVariable(
+    value: now(),
+    refreshOnVarChange: { local!selectedLog }
+  ),
+  
+  /*
+  local!useOriginal will denote whether real-time data should use the original
+  data or make a new request to the Process Mining APIs.
+
+  This is important because we don't want to make double the queries when first
+  loading the log.
+
+  now() gets evaluated a single time during the calculation cycle (i.e., changes in variable values),
+  and that single value is used in all references to now().
+  Refer to https://docs.appian.com/suite/help/22.4/SAIL_Performance.html
+
+  The idea is that:
+  1) If the first time loading the Process Dashboard (from the Data Exploration),
+     local!useOriginal = now() -&gt; Use original data
+  2) If moving back and forth between the Process and Attribute Dashboards,
+     local!useOriginal &lt;&gt; now() -&gt; Make a new request
+
+  This will apply to:
+  1) local!overallData
+  2) local!attributeData
+
+  This will not apply to:
+  1) local!attributeNames: this is calculated based on the original attributes and the attribute filter
+  2) local!overallCycleTimeOverTime: we don't need any original data from the cycle time over time request
+  */
+  local!overallData: if(
+    local!useOriginal = now(),
+    local!overallDataOriginal,
+    if(
+      a!isNotNullOrEmpty(local!selectedLog),
+      #"_a-0000e984-24eb-8000-9baa-011c48011c48_14345"(
+        logId: index(local!selectedLog, "id", null),
+        filterMeasure: local!readyMeasure,
+        aggregationFunction: index(
+          local!filterCalculation,
+          "aggregationFunction",
+          null
+        ),
+        timeRangeFilter: local!timeRangeFilter,
+        durationFilter: local!durationFilter,
+        filterAttributeMap: local!filterAttributeMapWithBreadcrumbs
+      ),
+      null
+    )
+  ),
+  local!overallCycleTime: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+    nullableValue: index(local!overallData, "cycleTime", null),
+    replacementValue: 0
+  ),
+  local!overallCaseCount: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+    nullableValue: index(local!overallData, "caseCount", null),
+    replacementValue: 0
+  ),
+  local!overallCycleTimeOverTime: if(
+    a!isNotNullOrEmpty(local!selectedLog),
+    #"_a-0000e984-24eb-8000-9baa-011c48011c48_14188"(
+      logId: index(local!selectedLog, "id", null),
+      filterMeasure: local!readyMeasure,
+      aggregationFunction: index(
+        local!filterCalculation,
+        "aggregationFunction",
+        null
+      ),
+      dateBinningType: index(
+        local!filterTimeBin,
+        "dateBinningType",
+        null
+      ),
+      timeRangeFilter: local!timeRangeFilter,
+      durationFilter: local!durationFilter,
+      filterAttributeMap: local!filterAttributeMapWithBreadcrumbs
+    ),
+    {}
+  ),
+  local!attributeNames: if(
+    a!isNotNullOrEmpty(local!selectedLog),
+    local!attributeNamesOriginal,
+    {}
+  ),
+  local!attributeData: if(
+    local!useOriginal = now(),
+    local!attributeDataOriginal,
+    if(
+      a!isNotNullOrEmpty(local!selectedLog),
+      #"_a-0000e984-24eb-8000-9baa-011c48011c48_14232"(
+        logId: index(local!selectedLog, "id", null),
+        aggregationFunction: index(
+          local!filterCalculation,
+          "aggregationFunction",
+          null
+        ),
+        startDatetime: local!filterStartDatetime,
+        endDatetime: local!filterEndDatetime,
+        attributes: local!attributeNames,
+        overallCaseCount: local!overallCaseCount,
+        overallCycleTime: local!overallCycleTime,
+        localeMap: local!localeMap,
+        filterAttributeMap: local!filterAttributeMapWithBreadcrumbs,
+        timeRangeFilter: local!timeRangeFilter,
+        durationFilter: local!durationFilter,
+        filterMeasure: local!readyMeasure
+      ),
+      null
+    )
+  ),
+  local!elementCycleTimeOverTime: if(
+    a!isNotNullOrEmpty(local!selectedElementName),
+    #"_a-0000e984-24eb-8000-9baa-011c48011c48_14188"(
+      logId: index(local!selectedLog, "id", null),
+      aggregationFunction: index(
+        local!filterCalculation,
+        "aggregationFunction",
+        null
+      ),
+      dateBinningType: index(
+        local!filterTimeBin,
+        "dateBinningType",
+        null
+      ),
+      filterAttributeMap: #"urn:appian:function:v1:a:update"(
+        local!filterAttributeMapWithBreadcrumbs,
+        local!selectedAttributeName,
+        #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_76367"(
+          array: union(
+            touniformstring(
+              local!filterAttributeMapWithBreadcrumbs[local!selectedAttributeName]
+            ),
+            { local!selectedElementName }
+          )
+        )
+      ),
+      filterMeasure: local!readyMeasure,
+      durationFilter: local!durationFilter,
+      timeRangeFilter: local!timeRangeFilter
+    ),
+    {}
+  ),
+
+  #"SYSTEM_SYSRULES_headerContentLayout"(
+    label: "TEST LABEL",
+    header: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13691"(
+        breadcrumbs: local!breadcrumbs,
+        localeMap: local!localeMap,
+        selectedLog: local!selectedLog,
+        selectedAttributeName: local!selectedAttributeName,
+        triggerReset: local!triggerReset,
+        filterCalculation: local!filterCalculation,
+        triggerResetAttributeDashboardFilters: local!triggerResetAttributeDashboardFilters,
+        selectedElementName: local!selectedElementName,
+        filterMeasure: local!filterMeasure,
+        activityNamesOriginal: local!activityNamesOriginal,
+        filterActivityNames: local!filterActivityNames,
+        triggerResetProcessDashboardFilters: local!triggerResetProcessDashboardFilters
+      ),
+    contents: if(
+      #"_a-0000e989-9e26-8000-9bad-011c48011c48_68239"(
+        selectedAttributeName: local!selectedAttributeName,
+        selectedLog: local!selectedLog
+      ),
+      {
+        #"SYSTEM_SYSRULES_columnsLayout"(
+          columns: {
+            
+            /* Filters section */
+            #"SYSTEM_SYSRULES_columnLayout"(
+              contents: {
+                /* ************************************************************
+                Hide this before deploying sprint 3, since mock ups are not ready
+                ************************************************************ */
+                #"_a-0000e992-d95a-8000-9bb0-011c48011c48_135167"(
+                  logSelected: local!selectedLog,
+                  breadcrumbs: local!breadcrumbs,
+                  filterMeasure: local!filterMeasure,
+                  filterCalculation: local!filterCalculation,
+                  filterTimePeriod: local!filterTimePeriodOption,
+                  filterDuration: local!filterTimeDurationOption,
+                  filterStartDatetime: local!filterStartDatetime,
+                  filterEndDatetime: local!filterEndDatetime,
+                  filterAttributeMap: local!filterAttributeMap,
+                  filterTimeBin: local!filterTimeBin,
+                  selectedNames: local!selectedNames,
+                  filterActivityNames: local!filterActivityNames
+                ),
+                
+                #"_a-0000e989-9e26-8000-9bad-011c48011c48_67941"(
+                  filterStartDatetime: local!filterStartDatetime,
+                  filterEndDatetime: local!filterEndDatetime,
+                  localeMap: local!localeMap,
+                  firstStartDatetime: local!firstStartDatetime,
+                  lastEndDatetime: local!lastEndDatetime,
+                  filterTimePeriodOption: local!filterTimePeriodOption,
+                  attributeDataOriginal: local!attributeDataOriginal,
+                  filterAttributeNames: local!filterAttributeNames,
+                  filterAttributeMap: local!filterAttributeMap,
+                  triggerReset: local!triggerReset,
+                  filterTimeDurationOption: local!filterTimeDurationOption,
+                  triggerResetFiltersSection: local!triggerResetFiltersSection,
+                  selectedNames: local!selectedNames,
+                  filterMeasure:  local!filterMeasure
+                )
+              },
+              width: "NARROW"
+            ),
+            /* Main section for dashboards */
+            #"SYSTEM_SYSRULES_columnLayout"(
+              contents: choose(
+                local!pageIndex,
+                {},
+                #"_a-0000e989-9e26-8000-9bad-011c48011c48_68426"(
+                  localeMap: local!localeMap,
+                  overallCycleTime: local!overallCycleTime,
+                  filterCalculation: local!filterCalculation,
+                  attributeData: local!attributeData,
+                  overallCaseCount: local!overallCaseCount,
+                  filterTimeBin: local!filterTimeBin,
+                  filterStartDatetime: local!filterStartDatetime,
+                  filterEndDatetime: local!filterEndDatetime,
+                  overallCycleTimeOverTime: local!overallCycleTimeOverTime,
+                  triggerReset: local!triggerReset,
+                  breadcrumbs: local!breadcrumbs,
+                  triggerResetProcessDashboardFilters: local!triggerResetProcessDashboardFilters
+                ),
+                #"_a-0000e989-9e26-8000-9bad-011c48011c48_69706"(
+                  localeMap: local!localeMap,
+                  singleAttributeData: local!attributeData[local!selectedAttributeName],
+                  filterCalculation: local!filterCalculation,
+                  filterTimeBin: local!filterTimeBin,
+                  filterStartDatetime: local!filterStartDatetime,
+                  filterEndDatetime: local!filterEndDatetime,
+                  triggerReset: local!triggerReset,
+                  triggerResetAttributeDashboardFilters: local!triggerResetAttributeDashboardFilters,
+                  overallCycleTime: local!overallCycleTime,
+                  breadcrumbs: local!breadcrumbs,
+                ),
+                #"_a-0000e989-9e26-8000-9bad-011c48011c48_95972"(
+                  filterTimeBin: local!filterTimeBin,
+                  localeMap: local!localeMap,
+                  filterStartDatetime: local!filterStartDatetime,
+                  filterEndDatetime: local!filterEndDatetime,
+                  cycleTimeOverTime: local!elementCycleTimeOverTime,
+                  filterCalculation: local!filterCalculation,
+                  selectedLog: local!selectedLog,
+                  selectedAttributeName: local!selectedAttributeName,
+                  selectedElementName: local!selectedElementName,
+                  timeRangeFilter: local!timeRangeFilter,
+                  durationFilter: local!durationFilter,
+                  attributeNames: local!attributeNames,
+                  overallCaseCount: local!overallCaseCount,
+                  overallCycleTime: local!overallCycleTime,
+                  filterAttributeMap: local!filterAttributeMapWithBreadcrumbs,
+                  readyMeasure: local!readyMeasure,
+                  breadcrumbs: local!breadcrumbs
+                )
+              )
+            )
+          },
+          showDividers: true
+        )
+      },
+      #"_a-0000e984-24eb-8000-9baa-011c48011c48_13713"(
+        breadcrumbs: local!breadcrumbs,
+        logs: local!logs
+      )
+    )
+  )
+)</definition>
+        <preferredEditor>interface</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+    </rule>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <history>
+        <historyInfo versionUuid="_a-0000e974-6eca-8000-9ba5-011c48011c48_10690"/>
+        <historyInfo versionUuid="_a-0000e984-24eb-8000-9baa-011c48011c48_17897"/>
+        <historyInfo versionUuid="_a-0000e989-9e26-8000-9bad-011c48011c48_38597"/>
+        <historyInfo versionUuid="_a-0000e989-9e26-8000-9bad-011c48011c48_52142"/>
+        <historyInfo versionUuid="_a-0000e992-d95a-8000-9bb0-011c48011c48_114515"/>
+        <historyInfo versionUuid="_a-0000e992-d95a-8000-9bb0-011c48011c48_140472"/>
+    </history>
+</contentHaul>
