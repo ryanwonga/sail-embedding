@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000e992-d95a-8000-9bb0-011c48011c48_140010</versionUuid>
+    <rule>
+        <name>PHQ_getRequestBodyForAggregateData</name>
+        <uuid>_a-0000e984-24eb-8000-9baa-011c48011c48_13296</uuid>
+        <description>Returns a dictionary containing the request body for the aggregate-data API</description>
+        <parentUuid>4c657c60-7c8b-4ea8-baa1-63906a69a9c4</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>a!localVariables(
+  local!timeRanges: #"_a-0000e992-d95a-8000-9bb0-011c48011c48_113635"(),
+  {
+    valuesFrom: a!match(
+      value: ri!valuesFrom.id,
+      equals: #"_a-0000e989-9e26-8000-9bad-011c48011c48_105577",
+      then: {
+        type: ri!valuesFrom.type,
+      },
+      equals: #"_a-0000e989-9e26-8000-9bad-011c48011c48_105584",
+      then: {
+        type: ri!valuesFrom.type,
+        activity: ri!valuesFrom.activity,
+      },
+      equals: #"_a-0000e989-9e26-8000-9bad-011c48011c48_105591",
+      then: {
+        type: ri!valuesFrom.type,
+        preActivity: ri!valuesFrom.preActivity,
+        succActivity: ri!valuesFrom.succActivity
+      },
+      default: null
+    ),
+    renderDiscoveredModel: false,
+    metric: ri!metric,
+    grouping: ri!grouping,
+    secondaryGrouping: ri!secondaryGrouping,
+    options: {
+      maxAmountAttributes: min(max(#"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+        nullableValue: ri!maxAmountAttributes, replacementValue: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13551"), 0), #"_a-0000e984-24eb-8000-9baa-011c48011c48_13551"),
+        histogramOptions: ri!histogramOption
+    },
+    miningRequest: {
+      logId: ri!logId,
+      traceFilterSequence: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_76367"(
+        array: {
+          /* Duration Filter */
+          if(
+            a!isNotNullOrEmpty(ri!durationFilter),
+            index(
+              ri!durationFilter,
+              ri!valuesFrom.helperCdtFieldName,
+              {}
+            ),
+            {}
+          ),
+
+          /* Time Period Filter for cases */
+          if(
+            and(
+              a!isNotNullOrEmpty(ri!timeRangeFilter),
+              ri!timeRangeFilter.type = displayvalue(
+                #"_a-0000e992-d95a-8000-9bb0-011c48011c48_113648",
+                local!timeRanges.id,
+                local!timeRanges.type,
+                null
+              )
+            ),
+            {
+              type: ri!timeRangeFilter.type,
+              from: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13304"(
+                #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+                  nullableValue: ri!timeRangeFilter.from, 
+                  replacementValue: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13311"
+                )
+              ),
+              to: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13304"(
+                #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+                  nullableValue: ri!timeRangeFilter.to, 
+                  replacementValue: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13317"
+                )
+              ),
+              startInRange: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+                nullableValue: ri!timeRangeFilter.startInRange, 
+                replacementValue: true
+              ),
+              endInRange: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+                nullableValue: ri!timeRangeFilter.endInRange, 
+                replacementValue: true
+              )
+            },
+            {}
+          ),
+
+          /* Other filters for spiking */
+          ri!filters
+        }
+      ),
+      /* Time Period Filter for events */
+      eventTimespanFilter: if(
+        and(
+          a!isNotNullOrEmpty(ri!timeRangeFilter),
+          ri!timeRangeFilter.type = displayvalue(
+            #"_a-0000e992-d95a-8000-9bb0-011c48011c48_113655",
+            local!timeRanges.id,
+            local!timeRanges.type,
+            null
+          )
+        ),
+        {
+          from: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13304"(
+            #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+              nullableValue: ri!timeRangeFilter.from, 
+              replacementValue: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13311"
+            )
+          ),
+          until: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13304"(
+            #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+              nullableValue: ri!timeRangeFilter.to, 
+              replacementValue: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13317"
+            )
+          ),
+          startInRange: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+            nullableValue: ri!timeRangeFilter.startInRange, 
+            replacementValue: true
+          ),
+          endInRange: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_73980"(
+            nullableValue: ri!timeRangeFilter.endInRange, 
+            replacementValue: true
+          )
+        },
+        {}
+      ),
+    }
+  }
+)</definition>
+        <namedTypedValue>
+            <name>valuesFrom</name>
+            <type>
+                <name>PHQ_HELPER_measure</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>metric</name>
+            <type>
+                <name>PHQ_HELPER_aggregateDataMetric</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>grouping</name>
+            <type>
+                <name>PHQ_HELPER_aggregateDataGrouping</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>secondaryGrouping</name>
+            <type>
+                <name>PHQ_HELPER_aggregateDataGrouping</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>maxAmountAttributes</name>
+            <type>
+                <name>int</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>logId</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filters</name>
+            <type>
+                <name>Variant</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>durationFilter</name>
+            <type>
+                <name>PHQ_HELPER_aggregateDataDurationFilter</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>timeRangeFilter</name>
+            <type>
+                <name>PHQ_HELPER_aggregateDataTimeRangeFilter</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>histogramOption</name>
+            <type>
+                <name>PHQ_HELPER_aggregateDataHistogramOption</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+    </rule>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <history>
+        <historyInfo versionUuid="_a-0000e984-24eb-8000-9baa-011c48011c48_15752"/>
+        <historyInfo versionUuid="_a-0000e989-9e26-8000-9bad-011c48011c48_25893"/>
+        <historyInfo versionUuid="_a-0000e989-9e26-8000-9bad-011c48011c48_50902"/>
+        <historyInfo versionUuid="_a-0000e992-d95a-8000-9bb0-011c48011c48_113966"/>
+        <historyInfo versionUuid="_a-0000e992-d95a-8000-9bb0-011c48011c48_140010"/>
+    </history>
+</contentHaul>

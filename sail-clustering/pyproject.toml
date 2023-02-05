@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "sail-clustering"
+version = "0.1.0"
+description = ""
+authors = ["Ryan Wong <ryan.wong@appian.com>"]
+readme = "README.md"
+packages = [{include = "sail_clustering"}]
+
+[tool.poetry.dependencies]
+python = "3.8.*"
+jupyter = "^1.0.0"
+pandas = "^1.5.3"
+openai = "^0.26.4"
+matplotlib = "^3.6.3"
+plotly = "^5.13.0"
+scipy = "^1.10.0"
+scikit-learn = "^1.2.1"
+
+
+[build-system] 
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

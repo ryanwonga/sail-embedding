@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000e992-d95a-8000-9bb0-011c48011c48_143573</versionUuid>
+    <rule>
+        <name>PHQ_getAttributeData</name>
+        <uuid>_a-0000e984-24eb-8000-9baa-011c48011c48_14232</uuid>
+        <description></description>
+        <parentUuid>4c657c60-7c8b-4ea8-baa1-63906a69a9c4</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>a!localVariables(
+  local!data: #"SYSTEM_SYSRULES_forEach"(
+    items: ri!attributes,
+    expression: a!localVariables(
+      local!attributeName: fv!item,
+      local!response: #"0f4f6d00-9b7d-46b2-bb5e-147f3f7d342c"(
+        logId: ri!logId,
+        valuesFrom: ri!filterMeasure,
+        metric: 'type!{urn:com:appian:types:PHQ}PHQ_HELPER_aggregateDataMetric'(
+          type: "duration",
+          aggregationFunction: ri!aggregationFunction
+        ),
+        grouping: 'type!{urn:com:appian:types:PHQ}PHQ_HELPER_aggregateDataGrouping'(
+          type: "byAttribute",
+          attribute: fv!item
+        ),
+        durationFilter: ri!durationFilter,
+        timeRangeFilter: ri!timeRangeFilter,
+        filters: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_76367"(
+          array: {
+            if(
+              a!isNotNullOrEmpty(ri!filterAttributeMap),
+              #"SYSTEM_SYSRULES_forEach"(
+                items: a!keys(ri!filterAttributeMap),
+                expression: if(
+                  a!isNullOrEmpty(ri!filterAttributeMap[fv!item]),
+                  {},
+                  {
+                    type: "byAttribute",
+                    attributeName: fv!item,
+                    values: ri!filterAttributeMap[fv!item]
+                  }
+                )
+              ),
+              {}
+            ),
+            ri!filters /* Only for spiking purposes */
+          }
+        )
+      ),
+      local!data: if(
+        index(local!response, "result", "statusCode", null) &lt;&gt; 200,
+        {},
+        #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_76367"(
+          array: #"SYSTEM_SYSRULES_forEach"(
+            items: index(local!response, "result", "body", "chartValues", {}),
+            expression: if(
+              or(
+                a!isNullOrEmpty(ri!filterAttributeMap[local!attributeName]),
+                contains(touniformstring(ri!filterAttributeMap[local!attributeName]), tostring(fv!item["xAxis"]))
+              ),
+              'type!{urn:com:appian:types:PHQ}PHQ_HELPER_element'(
+                element: fv!item["xAxis"],
+                value: fv!item["yAxis"],
+                frequency: fv!item["caseCount"],
+                frequencyPercentage: todecimal(fv!item["caseCount"]) / ri!overallCaseCount * 100.0,
+                influence: #"_a-0000e989-9e26-8000-9bad-011c48011c48_27887"(
+                  elementValue: fv!item["yAxis"],
+                  elementCount: fv!item["caseCount"],
+                  startDatetime: ri!startDatetime,
+                  endDatetime: ri!endDatetime,
+                  overallCycleTime: ri!overallCycleTime
+                )
+              ),
+              {}
+            )
+          )
+        )
+      ),
+      local!impactValue: sum(index(local!data, "influence", {0})),
+      'type!{urn:com:appian:types:PHQ}PHQ_HELPER_attribute'(
+        attribute: fv!item,
+        elements: local!data,
+        uniqueCount: length(local!data),
+        impactValue: local!impactValue,
+      )
+    )
+  ),
+  local!smallestImpact: min(index(local!data, "impactValue", {})),
+  local!largestImpact: max(index(local!data, "impactValue", {})),
+  local!dataWithImpactPercentage: #"SYSTEM_SYSRULES_forEach"(
+    items: local!data,
+    expression: a!localVariables(
+      local!impactPercentage: if(
+        (local!largestImpact - local!smallestImpact) = 0,
+        0,
+        (fv!item.impactValue - local!smallestImpact) / (local!largestImpact - local!smallestImpact) * 100
+      ),
+      #"urn:appian:function:v1:a:update"(
+        #"urn:appian:function:v1:a:update"(
+          fv!item,
+          "impactPercentage",
+          local!impactPercentage
+        ),
+        "impact",
+        #"_a-0000e984-24eb-8000-9baa-011c48011c48_20474"(
+          impactValue: local!impactPercentage,
+          localeMap: ri!localeMap
+        )
+      )
+    )
+  ),
+  if(
+    a!isNullOrEmpty(local!dataWithImpactPercentage),
+    null,
+    reduce(
+      #"urn:appian:function:v1:a:update",
+      a!map(),
+      merge(
+        ri!attributes,
+        local!dataWithImpactPercentage
+      )
+    )
+  )
+)</definition>
+        <namedTypedValue>
+            <name>logId</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>aggregationFunction</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>startDatetime</name>
+            <type>
+                <name>dateTime</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>endDatetime</name>
+            <type>
+                <name>dateTime</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>attributes</name>
+            <type>
+                <name>Text?list</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>overallCycleTime</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>overallCaseCount</name>
+            <type>
+                <name>double</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>localeMap</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterAttributeMap</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filters</name>
+            <description>Only for spiking purposes</description>
+            <type>
+                <name>Variant</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>grouping</name>
+            <type>
+                <name>PHQ_HELPER_aggregateDataGrouping</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>durationFilter</name>
+            <type>
+                <name>PHQ_HELPER_aggregateDataDurationFilter</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterMeasure</name>
+            <type>
+                <name>PHQ_HELPER_measure</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>timeRangeFilter</name>
+            <type>
+                <name>PHQ_HELPER_aggregateDataTimeRangeFilter</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+    </rule>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <history>
+        <historyInfo versionUuid="_a-0000e984-24eb-8000-9baa-011c48011c48_17806"/>
+        <historyInfo versionUuid="_a-0000e989-9e26-8000-9bad-011c48011c48_39212"/>
+        <historyInfo versionUuid="_a-0000e989-9e26-8000-9bad-011c48011c48_52222"/>
+        <historyInfo versionUuid="_a-0000e989-9e26-8000-9bad-011c48011c48_110330"/>
+        <historyInfo versionUuid="_a-0000e992-d95a-8000-9bb0-011c48011c48_143573"/>
+    </history>
+</contentHaul>

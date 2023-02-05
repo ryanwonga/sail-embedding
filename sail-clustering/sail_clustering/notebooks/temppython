@@ -1,0 +1,18 @@
+file_path = Path(__file__)
+resources_path = file_path.parent.parent / "resources"
+
+top_object, names_map = get_syntax_tree_from_xml(resources_path / "filename.xml")
+
+stack = [(0, top_object)]
+while stack:
+    l, o = stack[-1]
+    stack = stack[:-1]
+    for v in o.values[::-1]:
+        stack.append((l + 1, v))
+    print(f"{'  ' * l}{o.get_print()}")
+
+for name in ["label", "a!localVariables", "filterMeasure", "stampIcon"]:
+    if name in names_map:
+        print(f"Name: {name}")
+        for o in names_map[name]:
+            print(f"\tName: {[(v.name, v.object_type.value, v.line) for v in o.values]}")

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000e992-d95a-8000-9bb0-011c48011c48_140020</versionUuid>
+    <rule>
+        <name>PHQ_getJsonFromFilters</name>
+        <uuid>_a-0000e992-d95a-8000-9bb0-011c48011c48_133693</uuid>
+        <description></description>
+        <parentUuid>4c657c60-7c8b-4ea8-baa1-63906a69a9c4</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>#"SYSTEM_SYSRULES_toJson_v1"(
+  {
+    logSelected: ri!logSelected,
+    breadcrumbs: ri!breadcrumbs,
+    filterMeasure: ri!filterMeasure,
+    filterCalculation: ri!filterCalculation,
+    filterTimePeriod: ri!filterTimePeriod,
+    filterDuration: ri!filterDuration,
+    filterStartDatetime: ri!filterStartDatetime,
+    filterEndDatetime: ri!filterEndDatetime,
+    selectedNames: ri!selectedNames,
+    filterAttributeMap: ri!filterAttributeMap,
+    filterTimeBin: ri!filterTimeBin,
+    filterActivityNames: ri!filterActivityNames
+  }
+)</definition>
+        <namedTypedValue>
+            <name>logSelected</name>
+            <type>
+                <name>PHQ_HELPER_log</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>breadcrumbs</name>
+            <type>
+                <name>Map?list</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterMeasure</name>
+            <type>
+                <name>PHQ_HELPER_measure</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterCalculation</name>
+            <type>
+                <name>PHQ_HELPER_calculation</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterTimePeriod</name>
+            <type>
+                <name>PHQ_HELPER_timePeriod</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterDuration</name>
+            <type>
+                <name>PHQ_HELPER_timeDuration</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterStartDatetime</name>
+            <type>
+                <name>dateTime</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterEndDatetime</name>
+            <type>
+                <name>dateTime</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterAttributeMap</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterTimeBin</name>
+            <type>
+                <name>PHQ_HELPER_timeBin</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>selectedNames</name>
+            <type>
+                <name>Text?list</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterActivityNames</name>
+            <type>
+                <name>Text?list</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+    </rule>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <history>
+        <historyInfo versionUuid="_a-0000e992-d95a-8000-9bb0-011c48011c48_136762"/>
+        <historyInfo versionUuid="_a-0000e992-d95a-8000-9bb0-011c48011c48_140020"/>
+    </history>
+</contentHaul>

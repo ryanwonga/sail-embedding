@@ -47,7 +47,9 @@ graph TD
     node12-->node13
 ```
 Where each node contains the object's name and type. Possible types are `function`, `parameter`,
-`comment`, `text`, `local variable`, `rule input`, and `function variable`.
+`comment`, `text`, `local variable`, `rule input`, `function variable`, and `index`.
+
+Does not currently support record type references (and their properties like actions or fields), or process model expressions.
 
 # Usage
 Pass a valid XML path to `get_syntax_tree_from_xml(xml_path: Path)` or a SAIL expression to 

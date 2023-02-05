@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000e992-d95a-8000-9bb0-011c48011c48_111649</versionUuid>
+    <rule>
+        <name>PHQ_getFirstStartTime</name>
+        <uuid>_a-0000e984-24eb-8000-9baa-011c48011c48_13568</uuid>
+        <description>Given a log ID, returns the first start datetime across all cases</description>
+        <parentUuid>4c657c60-7c8b-4ea8-baa1-63906a69a9c4</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>a!localVariables(
+  local!response: #"0f4f6d00-9b7d-46b2-bb5e-147f3f7d342c"(
+    logId: ri!logId,
+    metric: 'type!{urn:com:appian:types:PHQ}PHQ_HELPER_aggregateDataMetric'(
+      type: "startDate",
+      aggregationFunction: "min"
+    ),
+    valuesFrom: #"_a-0000e989-9e26-8000-9bad-011c48011c48_105569"(localeMap: null)[
+      wherecontains(
+        #"_a-0000e989-9e26-8000-9bad-011c48011c48_105577",
+        #"_a-0000e989-9e26-8000-9bad-011c48011c48_105569"(localeMap: null).id
+      )
+    ]
+  ),
+  if(
+    index(local!response, "result", "statusCode", null) &lt;&gt; 200,
+    null,
+    a!map(
+      datetime: #"_a-0000e984-24eb-8000-9baa-011c48011c48_13591"(
+        pmDatetime: index(local!response, "result", "body", "chartValues", 1, "yAxis", null)
+      ),
+      caseCount: index(local!response, "result", "body", "chartValues", 1, "caseCount", null)
+    )
+  )
+)</definition>
+        <namedTypedValue>
+            <name>logId</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>localeMap</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+    </rule>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <history>
+        <historyInfo versionUuid="_a-0000e984-24eb-8000-9baa-011c48011c48_15763"/>
+        <historyInfo versionUuid="_a-0000e992-d95a-8000-9bb0-011c48011c48_111649"/>
+    </history>
+</contentHaul>

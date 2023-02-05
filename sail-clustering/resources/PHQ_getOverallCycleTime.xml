@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<contentHaul xmlns:a="http://www.appian.com/ae/types/2009">
+    <versionUuid>_a-0000e989-9e26-8000-9bad-011c48011c48_110199</versionUuid>
+    <rule>
+        <name>PHQ_getOverallCycleTime</name>
+        <uuid>_a-0000e984-24eb-8000-9baa-011c48011c48_14345</uuid>
+        <description></description>
+        <parentUuid>4c657c60-7c8b-4ea8-baa1-63906a69a9c4</parentUuid>
+        <visibility>
+            <advertise>false</advertise>
+            <hierarchy>true</hierarchy>
+            <indexable>true</indexable>
+            <quota>false</quota>
+            <searchable>true</searchable>
+            <system>false</system>
+            <unlogged>false</unlogged>
+        </visibility>
+        <definition>a!localVariables(
+  local!response: #"0f4f6d00-9b7d-46b2-bb5e-147f3f7d342c"(
+    logId: ri!logId,
+    valuesFrom: ri!filterMeasure,
+    metric: 'type!{urn:com:appian:types:PHQ}PHQ_HELPER_aggregateDataMetric'(
+      type: "duration",
+      aggregationFunction: ri!aggregationFunction
+    ),
+    durationFilter: ri!durationFilter,
+    timeRangeFilter: ri!timeRangeFilter,
+    filters: #"_a-0000e2ad-62e7-8000-9ba2-011c48011c48_76367"(
+      array: {
+        if(
+          a!isNotNullOrEmpty(ri!filterAttributeMap),
+          #"SYSTEM_SYSRULES_forEach"(
+            items: a!keys(ri!filterAttributeMap),
+            expression: if(
+              a!isNullOrEmpty(ri!filterAttributeMap[fv!item]),
+              {},
+              {
+                type: "byAttribute",
+                attributeName: fv!item,
+                values: ri!filterAttributeMap[fv!item]
+              }
+            )
+          ),
+          {}
+        )
+      }
+    )
+  ),
+  if(
+    index(local!response, "result", "statusCode", null) &lt;&gt; 200,
+    null,
+    'type!{urn:com:appian:types:PHQ}PHQ_HELPER_cycleTime'(
+      caseCount: index(local!response, "result", "body", "chartValues", 1, "caseCount", null),
+      cycleTime: index(local!response, "result", "body", "chartValues", 1, "yAxis", null)
+    )
+  )
+)</definition>
+        <namedTypedValue>
+            <name>logId</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>aggregationFunction</name>
+            <type>
+                <name>string</name>
+                <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+            </type>
+            <value/>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterAttributeMap</name>
+            <type>
+                <name>Map</name>
+                <namespace>http://www.appian.com/ae/types/2009</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>filterMeasure</name>
+            <type>
+                <name>PHQ_HELPER_measure</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>durationFilter</name>
+            <type>
+                <name>PHQ_HELPER_aggregateDataDurationFilter</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <namedTypedValue>
+            <name>timeRangeFilter</name>
+            <type>
+                <name>PHQ_HELPER_aggregateDataTimeRangeFilter</name>
+                <namespace>urn:com:appian:types:PHQ</namespace>
+            </type>
+        </namedTypedValue>
+        <preferredEditor>legacy</preferredEditor>
+        <offlineEnabled>false</offlineEnabled>
+    </rule>
+    <roleMap public="true">
+        <role inherit="true" allowForAll="false" name="readers">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="authors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="true" allowForAll="false" name="administrators">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyReaders">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAuthors">
+            <users/>
+            <groups/>
+        </role>
+        <role inherit="false" allowForAll="false" name="denyAdministrators">
+            <users/>
+            <groups/>
+        </role>
+    </roleMap>
+    <history>
+        <historyInfo versionUuid="_a-0000e984-24eb-8000-9baa-011c48011c48_15066"/>
+        <historyInfo versionUuid="_a-0000e989-9e26-8000-9bad-011c48011c48_39490"/>
+        <historyInfo versionUuid="_a-0000e989-9e26-8000-9bad-011c48011c48_52181"/>
+        <historyInfo versionUuid="_a-0000e989-9e26-8000-9bad-011c48011c48_110199"/>
+    </history>
+</contentHaul>
